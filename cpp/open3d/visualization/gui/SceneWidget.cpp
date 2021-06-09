@@ -1084,8 +1084,10 @@ rendering::Camera* SceneWidget::GetCamera() const {
 }
 
 std::shared_ptr<Label3D> SceneWidget::AddLabel(const Eigen::Vector3f& pos,
-                                               const char* text) {
+                                               const char* text,
+                                               const Color& color) {
     auto l = std::make_shared<Label3D>(pos, text);
+    l->SetTextColor(color);
     impl_->labels_3d_.insert(l);
     return l;
 }

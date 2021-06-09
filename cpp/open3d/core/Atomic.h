@@ -37,21 +37,21 @@
 namespace open3d {
 namespace core {
 
-inline uint32_t AtomicFetchAddRelaxed(uint32_t* address, uint32_t val) {
+inline uint32_t AtomicFetchAddRelaxed(volatile uint32_t* address, uint32_t val) {
 #ifdef __GNUC__
     return __atomic_fetch_add(address, val, __ATOMIC_RELAXED);
 #elif _MSC_VER
-    return _InterlockedExchangeAdd(address, val);
+    return _InterlockedExchangeAdd((volatile long*)address, val);
 #else
     static_assert(false, "AtomicFetchAddRelaxed not implemented for platform");
 #endif
 }
 
-inline uint64_t AtomicFetchAddRelaxed(uint64_t* address, uint64_t val) {
+inline uint64_t AtomicFetchAddRelaxed(volatile uint64_t* address, uint64_t val) {
 #ifdef __GNUC__
     return __atomic_fetch_add(address, val, __ATOMIC_RELAXED);
 #elif _MSC_VER
-    return _InterlockedExchangeAdd64(address, val);
+    return _InterlockedExchangeAdd64((volatile int64_t*)address, val);
 #else
     static_assert(false, "AtomicFetchAddRelaxed not implemented for platform");
 #endif

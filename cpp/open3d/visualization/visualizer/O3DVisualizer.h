@@ -142,7 +142,7 @@ public:
 
     DrawObject GetGeometry(const std::string& name) const;
 
-    void Add3DLabel(const Eigen::Vector3f& pos, const char* text);
+    void Add3DLabel(const Eigen::Vector3f& pos, const char* text, const gui::Color& color = {});
     void Clear3DLabels();
 
     void SetupCamera(float fov,

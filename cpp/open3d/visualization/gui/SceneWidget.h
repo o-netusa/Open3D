@@ -28,6 +28,7 @@
 
 #include <map>
 
+#include "open3d/visualization/gui/Color.h"
 #include "open3d/visualization/gui/Widget.h"
 #include "open3d/visualization/rendering/RendererHandle.h"
 #include "open3d/visualization/rendering/View.h"
@@ -183,7 +184,8 @@ public:
 
     // 3D Labels
     std::shared_ptr<Label3D> AddLabel(const Eigen::Vector3f& pos,
-                                      const char* text);
+                                      const char* text,
+                                      const Color& color = {});
     void RemoveLabel(std::shared_ptr<Label3D> label);
     void ClearLabels();
 

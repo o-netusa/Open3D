@@ -1080,8 +1080,8 @@ struct O3DVisualizer::Impl {
         return DrawObject();
     }
 
-    void Add3DLabel(const Eigen::Vector3f &pos, const char *text) {
-        scene_->AddLabel(pos, text);
+    void Add3DLabel(const Eigen::Vector3f &pos, const char *text, const gui::Color& color) {
+        scene_->AddLabel(pos, text, color);
     }
 
     void Clear3DLabels() { scene_->ClearLabels(); }
@@ -1965,8 +1965,8 @@ void O3DVisualizer::AddGeometry(
                        is_visible);
 }
 
-void O3DVisualizer::Add3DLabel(const Eigen::Vector3f &pos, const char *text) {
-    impl_->Add3DLabel(pos, text);
+void O3DVisualizer::Add3DLabel(const Eigen::Vector3f &pos, const char *text, const gui::Color& color) {
+    impl_->Add3DLabel(pos, text, color);
 }
 
 void O3DVisualizer::Clear3DLabels() { impl_->Clear3DLabels(); }
