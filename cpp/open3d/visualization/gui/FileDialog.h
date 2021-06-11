@@ -29,6 +29,7 @@
 #include <functional>
 
 #include "open3d/visualization/gui/Dialog.h"
+#include "open3d/visualization/gui/ListView.h"
 
 #define GUI_USE_NATIVE_FILE_DIALOG 1
 
@@ -38,6 +39,13 @@ namespace gui {
 
 struct Theme;
 
+enum SelectionMode {
+    DISABLE       = 0,             // view-only, no item can be selected
+    SINGLE_SELECT = 1 << 0,        // only one item can be selected
+    MULTI_SELECT  = 1 << 1,        // multiple items can be selected
+    DESELECTABLE  = 1 << 2,        // selected item can be de-selected
+};
+
 class FileDialog : public Dialog {
     using Super = Dialog;
 
@@ -46,6 +54,8 @@ public:
 
     FileDialog(Mode type, const char *title, const Theme &theme);
     virtual ~FileDialog();
+
+    void SetSelectionMode(SelectionMode mode);
 
     /// May either be a directory or a file. If path is a file, it will be
     /// selected if it exists. Defaults to current working directory if
@@ -62,7 +72,7 @@ public:
     /// The OnCancel and OnDone callbacks *must* be specified.
     void SetOnCancel(std::function<void()> on_cancel);
     /// The OnCancel and OnDone callbacks *must* be specified.
-    void SetOnDone(std::function<void(const char *)> on_done);
+    void SetOnDone(std::function<void(const std::vector<std::string> &)> on_done);
 
     Size CalcPreferredSize(const LayoutContext &context,
                            const Constraints &constraints) const override;

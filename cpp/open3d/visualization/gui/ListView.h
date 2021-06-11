@@ -28,6 +28,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "open3d/visualization/gui/Widget.h"
 
@@ -44,12 +45,16 @@ public:
 
     void SetItems(const std::vector<std::string>& items);
 
-    /// Returns the currently selected item in the list.
-    int GetSelectedIndex() const;
+    /// Set the selection mode.
+    void SetSelectionMode(int mode);
+    /// Returns the currently selected items in the list.
+    std::vector<int> GetSelectedIndices() const;
     /// Returns the value of the currently selected item in the list.
-    const char* GetSelectedValue() const;
-    /// Selects the indicated row of the list. Does not call onValueChanged.
+    std::vector<const char*> GetSelectedValues() const;
+    /// Selects the indicated row of the list. Will clear other selected rows. Does not call onValueChanged.
     void SetSelectedIndex(int index);
+    /// Add the index to the selected indices
+    void AddSelectedIndex(int index);
 
     Size CalcPreferredSize(const LayoutContext& context,
                            const Constraints& constraints) const override;
@@ -61,7 +66,7 @@ public:
     /// Calls onValueChanged(const char *selectedText, bool isDoubleClick)
     /// when the list selection changes because of user action.
     void SetOnValueChanged(
-            std::function<void(const char*, bool)> on_value_changed);
+            std::function<void(std::vector<const char*>, bool)> on_value_changed);
 
 private:
     struct Impl;

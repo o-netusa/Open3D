@@ -559,9 +559,9 @@ private:
                     window.GetTheme());
             dlg->AddFilter(".ktx", "Khronos Texture (.ktx)");
             dlg->SetOnCancel([&window]() { window.CloseDialog(); });
-            dlg->SetOnDone([this, &window](const char *path) {
+            dlg->SetOnDone([this, &window](const std::vector<std::string> &paths) {
                 window.CloseDialog();
-                SetIBL(window.GetRenderer(), path);
+                SetIBL(window.GetRenderer(), paths[0]);
                 // We need to set the "custom" bit, so just call the current
                 // profile a custom profile.
                 settings_.model_.SetCustomLighting(
@@ -1065,9 +1065,9 @@ void GuiVisualizer::OnMenuItemSelected(gui::Menu::ItemId item_id) {
             dlg->AddFilter(".pts", "3D Points files (.pts)");
             dlg->AddFilter("", "All files");
             dlg->SetOnCancel([this]() { this->CloseDialog(); });
-            dlg->SetOnDone([this](const char *path) {
+            dlg->SetOnDone([this](const std::vector<std::string> &paths) {
                 this->CloseDialog();
-                OnDragDropped(path);
+                OnDragDropped(paths[0].c_str());
             });
             ShowDialog(dlg);
             break;
@@ -1078,9 +1078,9 @@ void GuiVisualizer::OnMenuItemSelected(gui::Menu::ItemId item_id) {
             dlg->AddFilter(".png", "PNG images (.png)");
             dlg->AddFilter("", "All files");
             dlg->SetOnCancel([this]() { this->CloseDialog(); });
-            dlg->SetOnDone([this](const char *path) {
+            dlg->SetOnDone([this](const std::vector<std::string> &paths) {
                 this->CloseDialog();
-                this->ExportCurrentImage(path);
+                this->ExportCurrentImage(paths[0].c_str());
             });
             ShowDialog(dlg);
             break;

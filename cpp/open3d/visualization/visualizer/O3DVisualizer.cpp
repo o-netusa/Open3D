@@ -489,12 +489,17 @@ struct O3DVisualizer::Impl {
                 [this]() { NewSelectionSet(); });
         settings.delete_selection_set = new SmallButton(" - ");
         settings.delete_selection_set->SetOnClicked([this]() {
-            int idx = settings.selection_sets->GetSelectedIndex();
-            RemoveSelectionSet(idx);
+            auto indices = settings.selection_sets->GetSelectedIndices();
+            for (auto idx : indices) {
+                RemoveSelectionSet(idx);
+            }
         });
         settings.selection_sets = new ListView();
-        settings.selection_sets->SetOnValueChanged([this](const char *, bool) {
-            SelectSelectionSet(settings.selection_sets->GetSelectedIndex());
+        settings.selection_sets->SetOnValueChanged([this](std::vector<const char *>, bool) {
+            auto indices = settings.selection_sets->GetSelectedIndices();
+            for (auto idx : indices) {
+                SelectSelectionSet(idx);
+            }
         });
 
 #if __APPLE__
@@ -1635,7 +1640,7 @@ struct O3DVisualizer::Impl {
 
     void UpdateSelectionSetList() {
         size_t n = selections_->GetNumberOfSets();
-        int idx = settings.selection_sets->GetSelectedIndex();
+        int idx = settings.selection_sets->GetSelectedIndices()[0];
         idx = std::max(0, idx);
         idx = std::min(idx, int(n) - 1);
 
@@ -1746,9 +1751,9 @@ struct O3DVisualizer::Impl {
         dlg->AddFilter(".png", "PNG images (.png)");
         dlg->AddFilter("", "All files");
         dlg->SetOnCancel([this]() { this->window_->CloseDialog(); });
-        dlg->SetOnDone([this](const char *path) {
+        dlg->SetOnDone([this](const std::vector<std::string> &paths) {
             this->window_->CloseDialog();
-            this->ExportCurrentImage(path);
+            this->ExportCurrentImage(paths[0]);
         });
         window_->ShowDialog(dlg);
     }

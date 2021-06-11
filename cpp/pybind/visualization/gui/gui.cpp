@@ -964,11 +964,11 @@ void pybind_gui_classes(py::module &m) {
                  })
             .def("set_items", &ListView::SetItems,
                  "Sets the list to display the list of items provided")
-            .def_property("selected_index", &ListView::GetSelectedIndex,
+            .def_property("selected_index", &ListView::GetSelectedIndices,
                           &ListView::SetSelectedIndex,
                           "The index of the currently selected item")
             .def_property_readonly("selected_value",
-                                   &ListView::GetSelectedValue,
+                                   &ListView::GetSelectedValues,
                                    "The text of the currently selected item")
             .def("set_on_selection_changed", &ListView::SetOnValueChanged,
                  "Calls f(new_val, is_double_click) when user changes "

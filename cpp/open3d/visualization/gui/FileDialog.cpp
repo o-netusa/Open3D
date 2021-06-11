@@ -42,7 +42,6 @@
 #include "open3d/visualization/gui/Combobox.h"
 #include "open3d/visualization/gui/Label.h"
 #include "open3d/visualization/gui/Layout.h"
-#include "open3d/visualization/gui/ListView.h"
 #include "open3d/visualization/gui/TextEdit.h"
 #include "open3d/visualization/gui/Theme.h"
 #include "open3d/visualization/gui/Util.h"
@@ -134,17 +133,18 @@ struct FileDialog::Impl {
     std::shared_ptr<Button> ok_;
     std::shared_ptr<Button> cancel_;
     std::function<void()> on_cancel_;
-    std::function<void(const char *)> on_done_;
+    std::function<void(const std::vector<std::string> &)> on_done_;
 
-    const DirEntry &GetSelectedEntry() {
-        static DirEntry g_bogus("", DirEntry::Type::FILE);
+    std::vector<DirEntry> GetSelectedEntries() {
+        std::vector<DirEntry> entries;
 
-        int idx = filelist_->GetSelectedIndex();
-        if (idx >= 0) {
-            return entries_[idx];
-        } else {
-            return g_bogus;
+        auto indices = filelist_->GetSelectedIndices();
+        for (auto idx : indices)
+        {
+            entries.push_back(entries_[idx]);
         }
+
+        return entries;
     }
 
     void UpdateDirectoryListing() {
@@ -281,24 +281,28 @@ FileDialog::FileDialog(Mode mode, const char *title, const Theme &theme)
     impl_->dirtree_->SetOnValueChanged([this](const char *, int) {
         this->impl_->UpdateDirectoryListing();
     });
-    impl_->filelist_->SetOnValueChanged([this](const char *value,
+    impl_->filelist_->SetOnValueChanged([this](std::vector<const char *>,
                                                bool is_double_click) {
-        auto &entry = this->impl_->GetSelectedEntry();
+	auto entries = this->impl_->GetSelectedEntries();
         if (is_double_click) {
-            if (entry.GetType() == DirEntry::Type::FILE) {
+            assert(entries.size() == 1);
+            if (entries[0].GetType() == DirEntry::Type::FILE) {
                 this->OnDone();
                 return;
             } else {
                 auto new_dir = this->impl_->CalcCurrentDirectory();
-                new_dir = new_dir + "/" + entry.GetName();
+                new_dir = new_dir + "/" + entries[0].GetName();
                 this->SetPath(new_dir.c_str());
             }
         } else {
-            if (entry.GetType() == DirEntry::Type::FILE) {
-                this->impl_->filename_->SetText(entry.GetName().c_str());
-            } else {
-                if (this->impl_->mode_ == Mode::OPEN) {
+            for (auto& entry : entries)
+            {
+                if (entry.GetType() == DirEntry::Type::FILE) {
+                    this->impl_->filename_->SetText(entry.GetName().c_str());
+                }
+                else if (this->impl_->mode_ == Mode::OPEN) {
                     this->impl_->filename_->SetText("");
+                    break;
                 }
             }
         }
@@ -325,6 +329,10 @@ FileDialog::FileDialog(Mode mode, const char *title, const Theme &theme)
 }
 
 FileDialog::~FileDialog() {}
+
+void FileDialog::SetSelectionMode(SelectionMode mode) {
+    impl_->filelist_->SetSelectionMode(mode);
+}
 
 void FileDialog::SetPath(const char *path) {
     auto components = utility::filesystem::GetPathComponents(path);
@@ -377,36 +385,49 @@ void FileDialog::SetOnCancel(std::function<void()> on_cancel) {
     impl_->on_cancel_ = on_cancel;
 }
 
-void FileDialog::SetOnDone(std::function<void(const char *)> on_done) {
+void FileDialog::SetOnDone(std::function<void(const std::vector<std::string> &)> on_done) {
     impl_->on_done_ = on_done;
 }
 
 void FileDialog::OnWillShow() {}
 
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
+}
+
 void FileDialog::OnDone() {
     if (this->impl_->on_done_) {
         auto dir = this->impl_->CalcCurrentDirectory();
         utility::filesystem::ChangeWorkingDirectory(dir);
-        std::string name = this->impl_->filename_->GetText();
-        // If the user didn't specify an extension, automatically add one
-        // (unless we don't have the any-files (*.*) filter selected).
-        if (name.find(".") == std::string::npos && !name.empty()) {
-            int idx = this->impl_->filter_->GetSelectedIndex();
-            if (idx >= 0) {
-                auto &exts = impl_->filter_idx_2_filter[idx];
-                // Prefer PNG if available (otherwise in a list of common
-                // image files, e.g., ".jpg .png", we might pick the lossy one.
-                if (exts.find(".png") != exts.end()) {
-                    name += ".png";
-                } else {
-                    if (!exts.empty()) {
-                        name += *exts.begin();
+	auto values = impl_->filelist_->GetSelectedValues();
+        std::vector<std::string> selected_values;
+        for (auto val : values)
+        {
+            std::string name = val;
+            ltrim(name);
+            // If the user didn't specify an extension, automatically add one
+            // (unless we don't have the any-files (*.*) filter selected).
+            if (name.find(".") == std::string::npos && !name.empty()) {
+                int idx = this->impl_->filter_->GetSelectedIndex();
+                if (idx >= 0) {
+                    auto &exts = impl_->filter_idx_2_filter[idx];
+                    // Prefer PNG if available (otherwise in a list of common
+                    // image files, e.g., ".jpg .png", we might pick the lossy one.
+                    if (exts.find(".png") != exts.end()) {
+                        name += ".png";
+                    } else {
+                        if (!exts.empty()) {
+                            name += *exts.begin();
+                        }
                     }
                 }
             }
+            selected_values.push_back(dir + "/" + name);
         }
-        std::cout << "[o3d] name: '" << name << "'" << std::endl;
-        this->impl_->on_done_((dir + "/" + name).c_str());
+        this->impl_->on_done_(selected_values);
     } else {
         utility::LogError("FileDialog: need to call SetOnDone()");
     }
