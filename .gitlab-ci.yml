@@ -1,0 +1,48 @@
+variables:
+  GIT_STRATEGY: clone
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - build
+  - test
+  - deploy
+
+build_windows:
+  only:
+    - bgao/lidardev
+  stage: build
+  tags:
+    - windows
+  script:
+    - rm -rf build_debug build_release
+    - mkdir build_debug
+    - cd build_debug
+    - cmake –DCMAKE_BUILD_TYPE=Debug –DCMAKE_INSTALL_PREFIX=/c/open3d/debug -DBUILD_SHARED_LIBS=ON –DSTATIC_WINDOWS_RUNTIME=OFF –DBUILD_PYTHON_MODULE=OFF ..
+    - cmake --build . --config Debug -j4
+#    - cmake --build . --config Debug --target install
+    - cd ..
+    - mkdir build_release
+    - cd build_release
+    - cmake -DCMAKE_BUILD_TYPE=Release –DCMAKE_INSTALL_PREFIX=/c/open3d/release -DBUILD_SHARED_LIBS=ON –DSTATIC_WINDOWS_RUNTIME=OFF –DBUILD_PYTHON_MODULE=OFF ..
+    - cmake --build . --config Release -j4
+#    - cmake --build . --config Release --target install
+
+build_linux:
+  image: ubuntu:lidar_dev
+  only:
+    - bgao/lidardev
+  stage: build
+  tags:
+    - linux
+  script:
+    - git clone -b bgao/pointpillars ssh://git@192.168.10.1:2222/ml/open3d-ml
+    - rm -rf build_debug build_release
+    - mkdir build_debug
+    - cd build_debug
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DBUILD_PYTORCH_OPS=ON -DBUNDLE_OPEN3D_ML=ON -DOPEN3D_ML_ROOT=$(pwd)/open3d-ml ..
+    - make -j 4
+    - cd ..
+    - mkdir build_release
+    - cd build_release
+    - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_PYTORCH_OPS=ON -DBUNDLE_OPEN3D_ML=ON -DOPEN3D_ML_ROOT=$(pwd)/open3d-ml ..
+    - make -j 4
