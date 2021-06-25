@@ -259,7 +259,7 @@ Window::Window(const std::string& title,
                int width,
                int height,
                int flags /*= 0*/)
-    : Window(title, CENTERED_X, CENTERED_Y, width, height) {}
+    : Window(title, CENTERED_X, CENTERED_Y, width, height, flags) {}
 
 Window::Window(const std::string& title,
                int x,
@@ -322,7 +322,16 @@ Window::Window(const std::string& title,
     impl_->theme_.default_layout_spacing =
             int(std::round(impl_->theme_.default_layout_spacing * scaling));
 
-    ImGui::StyleColorsDark();
+    if (flags & FLAG_STYLE_DARK) {
+        ImGui::StyleColorsDark();
+    }
+    else if (flags & FLAG_STYLE_CLASSIC) {
+        ImGui::StyleColorsClassic();
+    }
+    else if (flags & FLAG_STYLE_LIGHT) {
+        ImGui::StyleColorsLight();
+    }
+
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowPadding = ImVec2(0, 0);
     style.WindowRounding = 0;

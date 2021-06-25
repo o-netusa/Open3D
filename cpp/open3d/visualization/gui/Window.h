@@ -54,6 +54,12 @@ public:
     static const int FLAG_HIDDEN;
     static const int FLAG_TOPMOST;
 
+    enum {
+        FLAG_STYLE_DARK    = (1 << 2),
+        FLAG_STYLE_CLASSIC = (1 << 3),
+        FLAG_STYLE_LIGHT   = (1 << 4)
+    };
+
     /// Creates a Window that is auto-sized and centered. Window creation is
     /// NOT thread-safe. Window must be created on the same thread that
     /// calls Application::Run().
