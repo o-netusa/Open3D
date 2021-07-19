@@ -153,7 +153,8 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
         const int64_t* indices_ptr,
         const int64_t& indices_count,
         scalar_t* covariance_ptr) {
-    scalar_t cumulants[9] = {0};
+    // cumulants must always be Float64 to ensure precision.
+    double cumulants[9] = {0};
 
     for (int64_t i = 0; i < indices_count; i++) {
         int64_t idx = 3 * indices_ptr[i];
@@ -168,7 +169,7 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
         cumulants[8] += points_ptr[idx + 2] * points_ptr[idx + 2];
     }
 
-    scalar_t num_indices = static_cast<scalar_t>(indices_count);
+    double num_indices = static_cast<double>(indices_count);
     cumulants[0] /= num_indices;
     cumulants[1] /= num_indices;
     cumulants[2] /= num_indices;
@@ -180,25 +181,29 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
     cumulants[8] /= num_indices;
 
     // Covariances(0, 0)
-    covariance_ptr[0] = cumulants[3] - cumulants[0] * cumulants[0];
+    covariance_ptr[0] =
+            static_cast<scalar_t>(cumulants[3] - cumulants[0] * cumulants[0]);
     // Covariances(1, 1)
-    covariance_ptr[4] = cumulants[6] - cumulants[1] * cumulants[1];
+    covariance_ptr[4] =
+            static_cast<scalar_t>(cumulants[6] - cumulants[1] * cumulants[1]);
     // Covariances(2, 2)
-    covariance_ptr[8] = cumulants[8] - cumulants[2] * cumulants[2];
+    covariance_ptr[8] =
+            static_cast<scalar_t>(cumulants[8] - cumulants[2] * cumulants[2]);
 
     // Covariances(0, 1) = Covariances(1, 0)
-    covariance_ptr[1] = cumulants[4] - cumulants[0] * cumulants[1];
+    covariance_ptr[1] =
+            static_cast<scalar_t>(cumulants[4] - cumulants[0] * cumulants[1]);
     covariance_ptr[3] = covariance_ptr[1];
 
     // Covariances(0, 2) = Covariances(2, 0)
-    covariance_ptr[2] = cumulants[5] - cumulants[0] * cumulants[2];
+    covariance_ptr[2] =
+            static_cast<scalar_t>(cumulants[5] - cumulants[0] * cumulants[2]);
     covariance_ptr[6] = covariance_ptr[2];
 
     // Covariances(1, 2) = Covariances(2, 1)
-    covariance_ptr[5] = cumulants[7] - cumulants[1] * cumulants[2];
+    covariance_ptr[5] =
+            static_cast<scalar_t>(cumulants[7] - cumulants[1] * cumulants[2]);
     covariance_ptr[7] = covariance_ptr[5];
-
-    return;
 }
 
 template <typename scalar_t>
