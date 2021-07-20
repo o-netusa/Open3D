@@ -46,6 +46,13 @@ namespace geometry {
 namespace kernel {
 namespace pointcloud {
 
+#ifndef __CUDACC__
+using std::abs;
+using std::max;
+using std::min;
+using std::sqrt;
+#endif
+
 #if defined(__CUDACC__)
 void UnprojectCUDA
 #else
@@ -148,7 +155,7 @@ void UnprojectCPU
 }
 
 template <typename scalar_t>
-OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
+OPEN3D_HOST_DEVICE void EstimatePointWiseNormalizedCovarianceKernel(
         const scalar_t* points_ptr,
         const int64_t* indices_ptr,
         const int64_t& indices_count,
@@ -158,15 +165,18 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
 
     for (int64_t i = 0; i < indices_count; i++) {
         int64_t idx = 3 * indices_ptr[i];
-        cumulants[0] += points_ptr[idx];
-        cumulants[1] += points_ptr[idx + 1];
-        cumulants[2] += points_ptr[idx + 2];
-        cumulants[3] += points_ptr[idx] * points_ptr[idx];
-        cumulants[4] += points_ptr[idx] * points_ptr[idx + 1];
-        cumulants[5] += points_ptr[idx] * points_ptr[idx + 2];
-        cumulants[6] += points_ptr[idx + 1] * points_ptr[idx + 1];
-        cumulants[7] += points_ptr[idx + 1] * points_ptr[idx + 2];
-        cumulants[8] += points_ptr[idx + 2] * points_ptr[idx + 2];
+        double x = static_cast<double>(points_ptr[idx]);
+        double y = static_cast<double>(points_ptr[idx + 1]);
+        double z = static_cast<double>(points_ptr[idx + 2]);
+        cumulants[0] += x;
+        cumulants[1] += y;
+        cumulants[2] += z;
+        cumulants[3] += x * x;
+        cumulants[4] += x * y;
+        cumulants[5] += x * z;
+        cumulants[6] += y * y;
+        cumulants[7] += y * z;
+        cumulants[8] += z * z;
     }
 
     double num_indices = static_cast<double>(indices_count);
@@ -190,19 +200,81 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseCovarianceKernel(
     covariance_ptr[8] =
             static_cast<scalar_t>(cumulants[8] - cumulants[2] * cumulants[2]);
 
-    // Covariances(0, 1) = Covariances(1, 0)
     covariance_ptr[1] =
             static_cast<scalar_t>(cumulants[4] - cumulants[0] * cumulants[1]);
+    covariance_ptr[2] =
+            static_cast<scalar_t>(cumulants[5] - cumulants[0] * cumulants[2]);
+    covariance_ptr[5] =
+            static_cast<scalar_t>(cumulants[7] - cumulants[1] * cumulants[2]);
+
+    // Covariances(0, 1) = Covariances(1, 0)
+    covariance_ptr[3] = covariance_ptr[1];
+    // Covariances(0, 2) = Covariances(2, 0)
+    covariance_ptr[6] = covariance_ptr[2];
+    // Covariances(1, 2) = Covariances(2, 1)
+    covariance_ptr[7] = covariance_ptr[5];
+}
+
+template <typename scalar_t>
+OPEN3D_HOST_DEVICE void EstimatePointWiseRobustNormalizedCovarianceKernel(
+        const scalar_t* points_ptr,
+        const int64_t* indices_ptr,
+        const int64_t& indices_count,
+        scalar_t* covariance_ptr) {
+    scalar_t centeroid[3] = {0};
+    for (int64_t i = 0; i < indices_count; i++) {
+        int64_t idx = 3 * indices_ptr[i];
+        centeroid[0] += points_ptr[idx];
+        centeroid[1] += points_ptr[idx + 1];
+        centeroid[2] += points_ptr[idx + 2];
+    }
+
+    scalar_t num_indices = static_cast<scalar_t>(indices_count);
+    centeroid[0] /= num_indices;
+    centeroid[1] /= num_indices;
+    centeroid[2] /= num_indices;
+
+    // cumulants must always be Float64 to ensure precision.
+    scalar_t cumulants[6] = {0};
+    for (int64_t i = 0; i < indices_count; i++) {
+        int64_t idx = 3 * indices_ptr[i];
+        scalar_t x = points_ptr[idx] - centeroid[0];
+        scalar_t y = points_ptr[idx + 1] - centeroid[1];
+        scalar_t z = points_ptr[idx + 2] - centeroid[2];
+
+        cumulants[0] += x * x;
+        cumulants[1] += y * y;
+        cumulants[2] += z * z;
+
+        cumulants[3] += x * y;
+        cumulants[4] += x * z;
+        cumulants[5] += y * z;
+    }
+
+    cumulants[0] /= num_indices;
+    cumulants[1] /= num_indices;
+    cumulants[2] /= num_indices;
+    cumulants[3] /= num_indices;
+    cumulants[4] /= num_indices;
+    cumulants[5] /= num_indices;
+
+    // Covariances(0, 0)
+    covariance_ptr[0] = cumulants[0];
+    // Covariances(1, 1)
+    covariance_ptr[4] = cumulants[1];
+    // Covariances(2, 2)
+    covariance_ptr[8] = cumulants[2];
+
+    // Covariances(0, 1) = Covariances(1, 0)
+    covariance_ptr[1] = cumulants[3];
     covariance_ptr[3] = covariance_ptr[1];
 
     // Covariances(0, 2) = Covariances(2, 0)
-    covariance_ptr[2] =
-            static_cast<scalar_t>(cumulants[5] - cumulants[0] * cumulants[2]);
+    covariance_ptr[2] = cumulants[4];
     covariance_ptr[6] = covariance_ptr[2];
 
     // Covariances(1, 2) = Covariances(2, 1)
-    covariance_ptr[5] =
-            static_cast<scalar_t>(cumulants[7] - cumulants[1] * cumulants[2]);
+    covariance_ptr[5] = cumulants[5];
     covariance_ptr[7] = covariance_ptr[5];
 }
 
@@ -289,7 +361,7 @@ OPEN3D_HOST_DEVICE void ComputeEigenvector1(const scalar_t* A,
     scalar_t max_abs_comp;
 
     if (absM00 >= absM11) {
-        max_abs_comp = OPEN3D_MAX(absM00, absM01);
+        max_abs_comp = max(absM00, absM01);
         if (max_abs_comp > 0) {
             if (absM00 >= absM01) {
                 m01 /= m00;
@@ -311,7 +383,7 @@ OPEN3D_HOST_DEVICE void ComputeEigenvector1(const scalar_t* A,
             return;
         }
     } else {
-        max_abs_comp = OPEN3D_MAX(absM11, absM01);
+        max_abs_comp = max(absM11, absM01);
         if (max_abs_comp > 0) {
             if (absM11 >= absM01) {
                 m01 /= m11;
@@ -386,7 +458,7 @@ OPEN3D_HOST_DEVICE void EstimatePointWiseNormalsWithFastEigen3x3(
         scalar_t det = (b00 * c00 - A[1] * c01 + A[2] * c02) / (p * p * p);
 
         scalar_t half_det = det * 0.5;
-        half_det = OPEN3D_MIN(OPEN3D_MAX(half_det, -1.0), 1.0);
+        half_det = min(max(half_det, -1.0), 1.0);
 
         scalar_t angle = acos(half_det) / 3.0;
         const scalar_t two_thrids_pi = 2.09439510239319549;

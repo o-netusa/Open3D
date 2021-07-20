@@ -264,7 +264,7 @@ void EstimateCovariancesUsingHybridSearchCPU(const core::Tensor& points,
             int64_t covariances_offset = 9 * workload_idx;
 
             if (neighbour_count >= 3) {
-                EstimatePointWiseCovarianceKernel(
+                EstimatePointWiseRobustNormalizedCovarianceKernel(
                         points_ptr, neighbour_indices_ptr + neighbour_offset,
                         neighbour_count, covariances_ptr + covariances_offset);
             } else {
@@ -320,7 +320,7 @@ void EstimateCovariancesUsingKNNSearchCPU(const core::Tensor& points,
             // of 9 x workload_idx.
             int64_t covariances_offset = 9 * workload_idx;
 
-            EstimatePointWiseCovarianceKernel(
+            EstimatePointWiseRobustNormalizedCovarianceKernel(
                     points_ptr, neighbour_indices_ptr + neighbour_offset,
                     nn_count, covariances_ptr + covariances_offset);
         });
