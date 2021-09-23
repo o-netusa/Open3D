@@ -1640,7 +1640,8 @@ struct O3DVisualizer::Impl {
 
     void UpdateSelectionSetList() {
         size_t n = selections_->GetNumberOfSets();
-        int idx = settings.selection_sets->GetSelectedIndices()[0];
+        auto indices = settings.selection_sets->GetSelectedIndices();
+        int idx = indices.size() > 0 ? indices[0] : -1;
         idx = std::max(0, idx);
         idx = std::min(idx, int(n) - 1);
 
