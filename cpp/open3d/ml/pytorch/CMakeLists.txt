@@ -102,6 +102,9 @@ if(BUILD_CUDA_MODULE)
     list(APPEND open3d_torch_ops_DEFINITIONS "BUILD_CUDA_MODULE")
 endif()
 target_compile_definitions(open3d_torch_ops PRIVATE "${open3d_torch_ops_DEFINITIONS}")
+if(MSVC)
+    target_compile_options(open3d_torch_ops PRIVATE /std:c++17)
+endif()
 
 target_include_directories(open3d_torch_ops SYSTEM PRIVATE
     ${PROJECT_SOURCE_DIR}/cpp

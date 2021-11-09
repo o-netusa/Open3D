@@ -170,10 +170,11 @@ void BuildSpatialHashTableCPU(const size_t num_points,
 /// \return Returns a vector of size \p VECSIZE with the distances to \p p.
 ///         Note that for the metric L2 the result contains the squared
 ///         distances to avoid the sqrt.
-template <int METRIC, class TDerived, int VECSIZE>
+template <class TDerived, int VECSIZE>
 Eigen::Array<typename TDerived::Scalar, VECSIZE, 1> NeighborsDist(
         const Eigen::ArrayBase<TDerived>& p,
-        const Eigen::Array<typename TDerived::Scalar, VECSIZE, 3>& points) {
+        const Eigen::Array<typename TDerived::Scalar, VECSIZE, 3>& points,
+		int METRIC) {
     typedef Eigen::Array<typename TDerived::Scalar, VECSIZE, 1> VecN_t;
     VecN_t dist;
 
@@ -213,10 +214,12 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
     using namespace open3d::utility;
 
     // number of elements for vectorization
-    const int VECSIZE = 8;
+    constexpr const int VECSIZE = 8;
     typedef MiniVec<T, 3> Vec3_t;
     typedef Eigen::Array<T, VECSIZE, 1> Vec_t;
     typedef Eigen::Array<int32_t, VECSIZE, 1> Veci_t;
+	typedef Eigen::Array<T, VECSIZE, 3> Vec_3_t;
+	typedef Eigen::Array<bool, VECSIZE, 1> Vec_b_1_t;
 
     const int batch_size = points_row_splits_size - 1;
 
@@ -282,7 +285,7 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                                     bins_to_visit.insert(first_cell_idx + hash);
                                 }
 
-                        Eigen::Array<T, VECSIZE, 3> xyz;
+                        Vec_3_t xyz;
                         int vec_i = 0;
 
                         for (size_t bin : bins_to_visit) {
@@ -304,10 +307,8 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                                 if (VECSIZE == vec_i) {
                                     Eigen::Array<T, 3, 1> pos_arr(
                                             pos[0], pos[1], pos[2]);
-                                    Vec_t dist =
-                                            NeighborsDist<METRIC>(pos_arr, xyz);
-                                    Eigen::Array<bool, VECSIZE, 1> test_result =
-                                            dist <= threshold;
+                                    Vec_t dist = NeighborsDist(pos_arr, xyz, METRIC);
+                                    Vec_b_1_t test_result = dist <= threshold;
                                     neighbors_count += test_result.count();
                                     vec_i = 0;
                                 }
@@ -317,10 +318,8 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                         if (vec_i) {
                             Eigen::Array<T, 3, 1> pos_arr(pos[0], pos[1],
                                                           pos[2]);
-                            Eigen::Array<T, VECSIZE, 1> dist =
-                                    NeighborsDist<METRIC>(pos_arr, xyz);
-                            Eigen::Array<bool, VECSIZE, 1> test_result =
-                                    dist <= threshold;
+                            Vec_t dist = NeighborsDist(pos_arr, xyz, METRIC);
+                            Vec_b_1_t test_result = dist <= threshold;
                             for (int k = 0; k < vec_i; ++k) {
                                 neighbors_count += int(test_result(k));
                             }
@@ -392,7 +391,7 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                                     bins_to_visit.insert(first_cell_idx + hash);
                                 }
 
-                        Eigen::Array<T, VECSIZE, 3> xyz;
+                        Vec_3_t xyz;
                         Veci_t idx_vec;
                         int vec_i = 0;
 
@@ -416,10 +415,8 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                                 if (VECSIZE == vec_i) {
                                     Eigen::Array<T, 3, 1> pos_arr(
                                             pos[0], pos[1], pos[2]);
-                                    Eigen::Array<T, VECSIZE, 1> dist =
-                                            NeighborsDist<METRIC>(pos_arr, xyz);
-                                    Eigen::Array<bool, VECSIZE, 1> test_result =
-                                            dist <= threshold;
+                                    Vec_t dist = NeighborsDist(pos_arr, xyz, METRIC);
+                                    Vec_b_1_t test_result = dist <= threshold;
                                     for (int k = 0; k < vec_i; ++k) {
                                         if (test_result(k)) {
                                             indices_ptr[indices_offset +
@@ -441,10 +438,8 @@ void _FixedRadiusSearchCPU(int64_t* query_neighbors_row_splits,
                         if (vec_i) {
                             Eigen::Array<T, 3, 1> pos_arr(pos[0], pos[1],
                                                           pos[2]);
-                            Eigen::Array<T, VECSIZE, 1> dist =
-                                    NeighborsDist<METRIC>(pos_arr, xyz);
-                            Eigen::Array<bool, VECSIZE, 1> test_result =
-                                    dist <= threshold;
+                            Vec_t dist = NeighborsDist(pos_arr, xyz, METRIC);
+                            Vec_b_1_t test_result = dist <= threshold;
                             for (int k = 0; k < vec_i; ++k) {
                                 if (test_result(k)) {
                                     indices_ptr[indices_offset +

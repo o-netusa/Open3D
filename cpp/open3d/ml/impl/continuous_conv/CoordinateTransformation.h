@@ -122,14 +122,16 @@ inline void MapCylinderToCube(Eigen::Array<T, VECSIZE, 1>& x,
 ///        implement discrete filters with even filter size.
 ///
 ///
-template <bool ALIGN_CORNERS, CoordinateMapping MAPPING, class T, int VECSIZE>
+template <class T, int VECSIZE>
 inline void ComputeFilterCoordinates(
         Eigen::Array<T, VECSIZE, 1>& x,
         Eigen::Array<T, VECSIZE, 1>& y,
         Eigen::Array<T, VECSIZE, 1>& z,
         const Eigen::Array<int, 3, 1>& filter_size,
         const Eigen::Array<T, VECSIZE, 3>& inv_extents,
-        const Eigen::Array<T, 3, 1>& offset) {
+        const Eigen::Array<T, 3, 1>& offset,
+		bool ALIGN_CORNERS,
+		CoordinateMapping MAPPING) {
     if (MAPPING == CoordinateMapping::BALL_TO_CUBE_RADIAL) {
         // x,y,z is now in the range [-1,1]
         x *= 2 * inv_extents.col(0);

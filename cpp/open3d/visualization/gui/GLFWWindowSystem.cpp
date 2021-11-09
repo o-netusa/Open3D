@@ -24,9 +24,20 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
+#pragma warning( disable : 4005 )
+
 #include "open3d/visualization/gui/GLFWWindowSystem.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning( disable : 4005 )
+#endif
+
 #include <GLFW/glfw3.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <iostream>
 #include <unordered_map>

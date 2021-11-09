@@ -43,6 +43,7 @@
 #pragma warning(disable : 4068 4146 4293)
 #endif // _MSC_VER
 
+#include <utils/unwindows.h> // Because we define OPAQUE in the BlendingMode enum.
 #include <filament/Box.h>
 #include <filament/RenderableManager.h>
 
