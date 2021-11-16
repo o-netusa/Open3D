@@ -24,8 +24,6 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#pragma warning( disable : 4005 )
-
 #include "open3d/visualization/gui/GLFWWindowSystem.h"
 
 #ifdef _MSC_VER
