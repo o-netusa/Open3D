@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -227,6 +227,35 @@ inline OPEN3D_DEVICE void DeviceGetNormalAt(
     if (vyp && vyn) n[1] = (vyp->GetTSDF() - vyn->GetTSDF()) / (2 * voxel_size);
     if (vzp && vzn) n[2] = (vzp->GetTSDF() - vzn->GetTSDF()) / (2 * voxel_size);
 };
+
+inline OPEN3D_DEVICE int64_t
+DeviceGetLinearIdx(int xo,
+                   int yo,
+                   int zo,
+                   int curr_block_idx,
+                   int resolution,
+                   const NDArrayIndexer& nb_block_masks_indexer,
+                   const NDArrayIndexer& nb_block_indices_indexer) {
+    int xn = (xo + resolution) % resolution;
+    int yn = (yo + resolution) % resolution;
+    int zn = (zo + resolution) % resolution;
+
+    int64_t dxb = Sign(xo - xn);
+    int64_t dyb = Sign(yo - yn);
+    int64_t dzb = Sign(zo - zn);
+
+    int64_t nb_idx = (dxb + 1) + (dyb + 1) * 3 + (dzb + 1) * 9;
+
+    bool block_mask_i =
+            *nb_block_masks_indexer.GetDataPtr<bool>(curr_block_idx, nb_idx);
+    if (!block_mask_i) return -1;
+
+    int block_idx_i =
+            *nb_block_indices_indexer.GetDataPtr<int>(curr_block_idx, nb_idx);
+
+    return (((block_idx_i * resolution) + zn) * resolution + yn) * resolution +
+           xn;
+}
 
 }  // namespace tsdf
 }  // namespace kernel

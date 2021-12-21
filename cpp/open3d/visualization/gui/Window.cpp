@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "open3d/utility/Console.h"
+#include "open3d/utility/Logging.h"
 #include "open3d/visualization/gui/Application.h"
 #include "open3d/visualization/gui/Button.h"
 #include "open3d/visualization/gui/Dialog.h"
@@ -1183,6 +1183,8 @@ void Window::OnKeyEvent(const KeyEvent& e) {
         this_mod = int(KeyModifier::ALT);
     } else if (e.key == KEY_META) {
         this_mod = int(KeyModifier::META);
+    } else if (e.key == KEY_ESCAPE) {
+        Close();
     }
 
     if (e.type == KeyEvent::UP) {

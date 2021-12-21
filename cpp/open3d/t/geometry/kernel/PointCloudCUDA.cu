@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,17 +24,7 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "open3d/core/Dispatch.h"
-#include "open3d/core/Dtype.h"
-#include "open3d/core/MemoryManager.h"
-#include "open3d/core/SizeVector.h"
-#include "open3d/core/Tensor.h"
-#include "open3d/core/kernel/CUDALauncher.cuh"
-#include "open3d/t/geometry/kernel/GeometryIndexer.h"
-#include "open3d/t/geometry/kernel/GeometryMacros.h"
-#include "open3d/t/geometry/kernel/PointCloud.h"
 #include "open3d/t/geometry/kernel/PointCloudImpl.h"
-#include "open3d/utility/Console.h"
 
 namespace open3d {
 namespace t {
@@ -63,8 +53,8 @@ void ProjectCUDA(
     NDArrayIndexer depth_indexer(depth, 2);
 
     // Pass 1: depth map
-    core::kernel::CUDALauncher::LaunchGeneralKernel(
-            n, [=] OPEN3D_DEVICE(int64_t workload_idx) {
+    core::ParallelFor(
+            depth.GetDevice(), n, [=] OPEN3D_DEVICE(int64_t workload_idx) {
                 float x = points_ptr[3 * workload_idx + 0];
                 float y = points_ptr[3 * workload_idx + 1];
                 float z = points_ptr[3 * workload_idx + 2];
@@ -94,8 +84,8 @@ void ProjectCUDA(
 
     NDArrayIndexer color_indexer(image_colors.value().get(), 2);
     float precision_bound = depth_scale * 1e-4;
-    core::kernel::CUDALauncher::LaunchGeneralKernel(
-            n, [=] OPEN3D_DEVICE(int64_t workload_idx) {
+    core::ParallelFor(
+            depth.GetDevice(), n, [=] OPEN3D_DEVICE(int64_t workload_idx) {
                 float x = points_ptr[3 * workload_idx + 0];
                 float y = points_ptr[3 * workload_idx + 1];
                 float z = points_ptr[3 * workload_idx + 2];
@@ -126,6 +116,7 @@ void ProjectCUDA(
                 }
             });
 }
+
 }  // namespace pointcloud
 }  // namespace kernel
 }  // namespace geometry

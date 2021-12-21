@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -51,11 +51,15 @@ void pybind_geometry(py::module& m) {
             "geometry", "Tensor-based geometry defining module.");
 
     pybind_geometry_class(m_submodule);
+    pybind_drawable_geometry_class(m_submodule);
     pybind_tensormap(m_submodule);
     pybind_pointcloud(m_submodule);
+    pybind_lineset(m_submodule);
     pybind_trianglemesh(m_submodule);
     pybind_image(m_submodule);
     pybind_tsdf_voxelgrid(m_submodule);
+    pybind_voxel_block_grid(m_submodule);
+    pybind_raycasting_scene(m_submodule);
 }
 
 }  // namespace geometry

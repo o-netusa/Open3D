@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@
 #include "pybind/t/pipelines/odometry/odometry.h"
 #include "pybind/t/pipelines/registration/registration.h"
 #include "pybind/t/pipelines/slac/slac.h"
+#include "pybind/t/pipelines/slam/slam.h"
 
 namespace open3d {
 namespace t {
@@ -41,6 +42,7 @@ void pybind_pipelines(py::module& m) {
     odometry::pybind_odometry(m_pipelines);
     registration::pybind_registration(m_pipelines);
     slac::pybind_slac(m_pipelines);
+    slam::pybind_slam(m_pipelines);
 }
 
 }  // namespace pipelines

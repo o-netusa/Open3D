@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ namespace pipelines {
 namespace registration {
 
 void pybind_registration(py::module &m);
+void pybind_robust_kernels(py::module &m);
 
 }  // namespace registration
 }  // namespace pipelines

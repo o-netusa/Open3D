@@ -14,7 +14,7 @@ System requirements
   * macOS 10.14+: XCode 8.0+
   * Windows 10 (64-bit): Visual Studio 2019+
 
-* CMake: 3.18+
+* CMake: 3.19+
 
   * Ubuntu (18.04 / 20.04):
 
@@ -25,7 +25,7 @@ System requirements
   * macOS: Install with Homebrew: ``brew install cmake``
   * Windows: Download from: `CMake download page <https://cmake.org/download/>`_
 
-* CUDA (optional): Open3D supports GPU acceleration of an increasing number
+* CUDA 10.1+ (optional): Open3D supports GPU acceleration of an increasing number
   of operations through CUDA on Linux. We recommend using CUDA 11.0 for the
   best compatibility with recent GPUs and optional external dependencies such
   as Tensorflow or PyTorch.
@@ -38,14 +38,9 @@ System requirements
 Cloning Open3D
 --------------
 
-Make sure to use the ``--recursive`` flag when cloning Open3D.
-
 .. code-block:: bash
 
-    git clone --recursive https://github.com/intel-isl/Open3D
-
-    # You can also update the submodule manually
-    git submodule update --init --recursive
+    git clone https://github.com/isl-org/Open3D
 
 .. _compilation_unix:
 
@@ -59,20 +54,19 @@ Ubuntu/macOS
 
 .. code-block:: bash
 
-    # On Ubuntu
+    # Only needed for Ubuntu
     util/install_deps_ubuntu.sh
 
-    # On macOS: skip this step
 
 .. _compilation_unix_python:
 
 2. Setup Python environments
 ````````````````````````````
 
-Activate the python ``virtualenv`` or Conda environment. Check
+Activate the Python ``virtualenv`` or Conda environment. Check
 ``which python`` to ensure that it shows the desired Python executable.
-Alternatively, set the CMake flag ``-DPYTHON_EXECUTABLE=/path/to/python``
-to specify the python executable.
+Alternatively, set the CMake flag ``-DPython3_ROOT=/path/to/python``
+to specify the path to the Python installation.
 
 If Python binding is not needed, you can turn it off by ``-DBUILD_PYTHON_MODULE=OFF``.
 
@@ -84,12 +78,15 @@ If Python binding is not needed, you can turn it off by ``-DBUILD_PYTHON_MODULE=
 
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX=<open3d_install_directory> ..
+    cmake ..
 
-The ``CMAKE_INSTALL_PREFIX`` argument is optional and can be used to install
-Open3D to a user location. In the absence of this argument Open3D will be
-installed to a system location where ``sudo`` is required) For more
-options of the build, see :ref:`compilation_options`.
+You can specify ``-DCMAKE_INSTALL_PREFIX=$HOME/open3d_install`` to control the
+installation directory of ``make install``. In the absence of
+``CMAKE_INSTALL_PREFIX``, Open3D will be installed to a system location where
+``sudo`` may be required.
+
+For more build options, see :ref:`compilation_options` and the root
+``CMakeLists.txt``.
 
 .. _compilation_unix_build:
 
@@ -267,19 +264,19 @@ enable ``BUILD_CUDA_MODULE=ON`` for GPU support. To include the models and
 pipelines from Open3D-ML in the python package, set ``BUNDLE_OPEN3D_ML=ON`` and
 ``OPEN3D_ML_ROOT`` to the Open3D-ML repository. You can directly download
 Open3D-ML from GitHub during the build with
-``OPEN3D_ML_ROOT=https://github.com/intel-isl/Open3D-ML.git``.
+``OPEN3D_ML_ROOT=https://github.com/isl-org/Open3D-ML.git``.
 
 .. warning:: Compiling PyTorch ops with CUDA 11 may have stability issues. See
-    `Open3D issue #3324 <https://github.com/intel-isl/Open3D/issues/3324>`_ and
+    `Open3D issue #3324 <https://github.com/isl-org/Open3D/issues/3324>`_ and
     `PyTorch issue #52663 <https://github.com/pytorch/pytorch/issues/52663>`_ for
     more information on this problem.
 
     We recommend to compile Pytorch from source
     with compile flags ``-Xcompiler -fno-gnu-unique`` or use the `PyTorch
     wheels from Open3D.
-    <https://github.com/intel-isl/open3d_downloads/releases/tag/torch1.7.1>`_
+    <https://github.com/isl-org/open3d_downloads/releases/tag/torch1.8.2>`_
     To reproduce the Open3D PyTorch wheels see the builder repository `here.
-    <https://github.com/intel-isl/pytorch_builder>`_
+    <https://github.com/isl-org/pytorch_builder>`_
 
 
 The following example shows the command for building the ops with GPU support
@@ -292,7 +289,7 @@ for all supported ML frameworks and bundling the high level Open3D-ML code.
           -DBUILD_PYTORCH_OPS=ON \
           -DBUILD_TENSORFLOW_OPS=ON \
           -DBUNDLE_OPEN3D_ML=ON \
-          -DOPEN3D_ML_ROOT=https://github.com/intel-isl/Open3D-ML.git \
+          -DOPEN3D_ML_ROOT=https://github.com/isl-org/Open3D-ML.git \
           ..
     # Install the python wheel with pip
     make -j install-pip-package

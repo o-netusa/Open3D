@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,8 +40,8 @@
 #include <unordered_set>
 
 #include "open3d/geometry/Image.h"
-#include "open3d/utility/Console.h"
 #include "open3d/utility/FileSystem.h"
+#include "open3d/utility/Logging.h"
 #include "open3d/visualization/gui/Button.h"
 #include "open3d/visualization/gui/Events.h"
 #include "open3d/visualization/gui/GLFWWindowSystem.h"
@@ -351,7 +351,9 @@ WindowSystem &Application::GetWindowSystem() const {
 }
 
 void Application::SetWindowSystem(std::shared_ptr<WindowSystem> ws) {
-    assert(!impl_->window_system_);
+    if (impl_->window_system_ != nullptr) {
+        utility::LogError("Cannot set WindowSystem. It is already set.");
+    }
     impl_->window_system_ = ws;
     impl_->is_ws_initialized_ = false;
 }
@@ -704,7 +706,8 @@ std::shared_ptr<geometry::Image> Application::RenderToDepthImage(
         rendering::View *view,
         rendering::Scene *scene,
         int width,
-        int height) {
+        int height,
+        bool z_in_view_space /* =false */) {
     std::shared_ptr<geometry::Image> img;
     auto callback = [&img](std::shared_ptr<geometry::Image> _img) {
         img = _img;
@@ -716,7 +719,7 @@ std::shared_ptr<geometry::Image> Application::RenderToDepthImage(
     // C++ callers do not need to know do this themselves.
     view->SetViewport(0, 0, width, height);
 
-    renderer.RenderToDepthImage(view, scene, callback);
+    renderer.RenderToDepthImage(view, scene, callback, z_in_view_space);
     renderer.BeginFrame();
     renderer.EndFrame();
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,17 +32,10 @@ namespace open3d {
 namespace core {
 
 void SVD(const Tensor &A, Tensor &U, Tensor &S, Tensor &VT) {
-    // Check devices
-    Device device = A.GetDevice();
+    AssertTensorDtypes(A, {Float32, Float64});
 
-    // Check dtypes
-    Dtype dtype = A.GetDtype();
-    if (dtype != Dtype::Float32 && dtype != Dtype::Float64) {
-        utility::LogError(
-                "Only tensors with Float32 or Float64 are supported, but "
-                "received {}",
-                dtype.ToString());
-    }
+    const Device device = A.GetDevice();
+    const Dtype dtype = A.GetDtype();
 
     // Check dimensions
     SizeVector A_shape = A.GetShape();

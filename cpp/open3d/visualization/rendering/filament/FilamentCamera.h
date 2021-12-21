@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2019 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 // ----------------------------------------------------------------------------
 
 #pragma once
+
+#include <utils/Entity.h>
 
 #include "open3d/visualization/rendering/Camera.h"
 
@@ -97,6 +99,7 @@ public:
                               float view_height) const override;
 
     Eigen::Vector2f GetNDC(const Eigen::Vector3f& pt) const override;
+    double GetViewZ(float z_buffer) const override;
 
     void CopyFrom(const Camera* camera) override;
 
@@ -104,6 +107,7 @@ public:
 
 private:
     filament::Camera* camera_ = nullptr;
+    utils::Entity camera_entity_;
     filament::Engine& engine_;
     Camera::ProjectionInfo projection_;
 };

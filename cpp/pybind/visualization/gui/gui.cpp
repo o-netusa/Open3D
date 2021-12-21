@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2020 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -174,10 +174,13 @@ std::shared_ptr<geometry::Image> RenderToImageWithoutWindow(
 }
 
 std::shared_ptr<geometry::Image> RenderToDepthImageWithoutWindow(
-        rendering::Open3DScene *scene, int width, int height) {
+        rendering::Open3DScene *scene,
+        int width,
+        int height,
+        bool z_in_view_space /* = false */) {
     return Application::GetInstance().RenderToDepthImage(
             scene->GetRenderer(), scene->GetView(), scene->GetScene(), width,
-            height);
+            height, z_in_view_space);
 }
 
 enum class EventCallbackResult { IGNORED = 0, HANDLED, CONSUMED };
@@ -271,10 +274,9 @@ void pybind_gui_classes(py::module &m) {
                         InitializeForPython(resource_dir);
                     },
                     "Initializes the application with location of the "
-                    "resources "
-                    "provided by the caller. One of the `initialize` functions "
-                    "_must_ be called prior to using anything in the gui "
-                    "module")
+                    "resources provided by the caller. One of the `initialize` "
+                    "functions _must_ be called prior to using anything in the "
+                    "gui module")
             .def("add_font", &Application::AddFont,
                  "Adds a font. Must be called after initialize() and before "
                  "a window is created. Returns the font id, which can be used "
@@ -368,10 +370,8 @@ void pybind_gui_classes(py::module &m) {
                         instance.AddWindow(TakeOwnership(window));
                     },
                     "Adds a window to the application. This is only necessary "
-                    "when "
-                    "creating object that is a Window directly, rather than "
-                    "with "
-                    "create_window")
+                    "when creating an object that is a Window directly, rather "
+                    "than with create_window")
             .def("run_in_thread", &Application::RunInThread,
                  "Runs function in a separate thread. Do not call GUI "
                  "functions on this thread, call post_to_main_thread() if "
@@ -1666,6 +1666,7 @@ void pybind_gui_classes(py::module &m) {
             py::none(), py::none(), "");
     filedlg_mode.value("OPEN", FileDialog::Mode::OPEN)
             .value("SAVE", FileDialog::Mode::SAVE)
+            .value("OPEN_DIR", FileDialog::Mode::OPEN_DIR)
             .export_values();
     filedlg.def(py::init<FileDialog::Mode, const char *, const Theme &>(),
                 "Creates either an open or save file dialog. The first "

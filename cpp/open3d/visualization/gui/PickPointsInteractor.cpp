@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,9 @@
 #include "open3d/geometry/TriangleMesh.h"
 #include "open3d/t/geometry/PointCloud.h"
 #include "open3d/t/geometry/TriangleMesh.h"
-#include "open3d/utility/Console.h"
+#include "open3d/utility/Logging.h"
 #include "open3d/visualization/gui/Events.h"
-#include "open3d/visualization/rendering/Material.h"
+#include "open3d/visualization/rendering/MaterialRecord.h"
 #include "open3d/visualization/rendering/Open3DScene.h"
 #include "open3d/visualization/rendering/Scene.h"
 #include "open3d/visualization/rendering/View.h"
@@ -99,9 +99,18 @@ public:
 
     // start_index must be larger than all previously added items
     void Add(const std::string &name, size_t start_index) {
-        assert(objects_.empty() || objects_.back().start_index < start_index);
+        if (!objects_.empty() && objects_.back().start_index >= start_index) {
+            utility::LogError(
+                    "start_index {} must be larger than all previously added "
+                    "objects {}.",
+                    start_index, objects_.back().start_index);
+        }
         objects_.emplace_back(name, start_index);
-        assert(objects_[0].start_index == 0);
+        if (objects_[0].start_index != 0) {
+            utility::LogError(
+                    "The first object's start_index must be 0, but got {}.",
+                    objects_[0].start_index);
+        }
     }
 
     const Obj &ObjectForIndex(size_t index) {
@@ -112,7 +121,9 @@ public:
                                          index, [](size_t value, const Obj &o) {
                                              return value < o.start_index;
                                          });
-            assert(next != objects_.end());  // first object != 0
+            if (next == objects_.end()) {
+                utility::LogError("First object != 0");
+            }
             if (next == objects_.end()) {
                 return objects_.back();
 
@@ -179,8 +190,8 @@ void PickPointsInteractor::SetPickableGeometry(
             points_.insert(points_.end(), mesh->vertices_.begin(),
                            mesh->vertices_.end());
         } else if (tcloud || tmesh) {
-            const auto &tpoints =
-                    (tcloud ? tcloud->GetPoints() : tmesh->GetVertices());
+            const auto &tpoints = (tcloud ? tcloud->GetPointPositions()
+                                          : tmesh->GetVertexPositions());
             const size_t n = tpoints.NumElements();
             float *pts = (float *)tpoints.GetDataPtr();
             points_.reserve(points_.size() + n);
@@ -197,7 +208,7 @@ void PickPointsInteractor::SetPickableGeometry(
             // over the occluded points. We paint with a special "mesh index"
             // so that we can to enhanced picking if we hit a mesh index.
             auto mesh_color = CalcIndexColor(kMeshIndex);
-            rendering::Material mat;
+            rendering::MaterialRecord mat;
             mat.shader = "unlitSolidColor";  // ignore any vertex colors!
             mat.base_color = {float(mesh_color.x()), float(mesh_color.y()),
                               float(mesh_color.z()), 1.0f};
@@ -336,8 +347,8 @@ void PickPointsInteractor::ClearPick() {
     SetNeedsRedraw();
 }
 
-rendering::Material PickPointsInteractor::MakeMaterial() {
-    rendering::Material mat;
+rendering::MaterialRecord PickPointsInteractor::MakeMaterial() {
+    rendering::MaterialRecord mat;
     mat.shader = "unlitPolygonOffset";
     mat.point_size = float(point_size_);
     // We are not tonemapping, so src colors are RGB. This prevents the colors

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -119,6 +119,7 @@ protected:
     void SetMinorAxisPreferredSize(int size);
 
     Margins& GetMutableMargins();
+    std::vector<std::shared_ptr<Widget>> GetVisibleChildren() const;
 
 private:
     struct Impl;

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,24 @@
 namespace open3d {
 namespace utility {
 namespace filesystem {
+
+/// \brief Get the HOME directory for the user.
+///
+/// The home directory is determined in the following order:
+/// - On Unix:
+///   - $HOME
+///   - /
+/// - On Windows:
+///   - %USERPROFILE%
+///   - %HOMEDRIVE%
+///   - %HOMEPATH%
+///   - %HOME%
+///   - C:/
+///
+/// This is the same logics as used in Qt.
+/// - src/corelib/io/qfilesystemengine_win.cpp
+/// - src/corelib/io/qfilesystemengine_unix.cpp
+std::string GetHomeDirectory();
 
 std::string GetFileExtensionInLowerCase(const std::string &filename);
 

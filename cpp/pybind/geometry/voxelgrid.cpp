@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -120,6 +120,14 @@ void pybind_voxelgrid(py::module &m) {
                  "Convert to Octree.")
             .def("create_from_octree", &VoxelGrid::CreateFromOctree, "octree"_a,
                  "Convert from Octree.")
+            .def("get_voxel_center_coordinate",
+                 &VoxelGrid::GetVoxelCenterCoordinate, "idx"_a,
+                 "Returns the center coordinate of a voxel given its grid "
+                 "index.")
+            .def("get_voxel_bounding_points",
+                 &VoxelGrid::GetVoxelBoundingPoints, "index"_a,
+                 "Returns the 8 bounding points of a voxel given its grid "
+                 "index.")
             .def_static("create_dense", &VoxelGrid::CreateDense,
                         "Creates a voxel grid where every voxel is set (hence "
                         "dense). This is a useful starting point for voxel "
@@ -192,6 +200,12 @@ void pybind_voxelgrid(py::module &m) {
     docstring::ClassMethodDocInject(
             m, "VoxelGrid", "create_from_octree",
             {{"octree", "geometry.Octree: The source octree."}});
+    docstring::ClassMethodDocInject(
+            m, "VoxelGrid", "get_voxel_center_coordinate",
+            {{"idx", "The grid index of the query voxel."}});
+    docstring::ClassMethodDocInject(
+            m, "VoxelGrid", "get_voxel_bounding_points",
+            {{"index", "The grid index of the query voxel."}});
     docstring::ClassMethodDocInject(
             m, "VoxelGrid", "create_dense",
             {{"origin", "Coordinate center of the VoxelGrid"},

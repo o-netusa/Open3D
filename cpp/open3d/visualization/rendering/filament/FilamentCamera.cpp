@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2019 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,10 @@
 #include <filament/Camera.h>
 #include <filament/Engine.h>
 #include <math/mat4.h>  // necessary for mat4f
+
+// Necessary for filament::utils::EntityManager::get(), replace with
+// engine_.getEntityManager() for Filament 1.9.23+
+#include <utils/EntityManager.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -77,12 +81,15 @@ filament::math::mat4f CameraToFilamentTransformF(const Camera::Transform& t) {
 }  // namespace
 
 FilamentCamera::FilamentCamera(filament::Engine& engine) : engine_(engine) {
-    camera_ = engine_.createCamera();
+    camera_entity_ = utils::EntityManager::get().create();
+    camera_ = engine_.createCamera(camera_entity_);
     projection_.is_ortho = false;
     projection_.is_intrinsic = false;
 }
 
-FilamentCamera::~FilamentCamera() { engine_.destroy(camera_); }
+FilamentCamera::~FilamentCamera() {
+    engine_.destroyCameraComponent(camera_entity_);
+}
 
 void FilamentCamera::CopyFrom(const Camera* camera) {
     SetModelMatrix(camera->GetModelMatrix());
@@ -295,6 +302,15 @@ Eigen::Vector2f FilamentCamera::GetNDC(const Eigen::Vector3f& pt) const {
     ndc_space_p.y = float(clip_space_p.y / clip_space_p.w);
 
     return {ndc_space_p.x, ndc_space_p.y};
+}
+
+double FilamentCamera::GetViewZ(float z_buffer) const {
+    double z_near = GetNear();
+    if (z_buffer >= 1.0f) {
+        return std::numeric_limits<double>::infinity();
+    } else {
+        return -z_near / (1.0 - z_buffer);
+    }
 }
 
 const Camera::ProjectionInfo& FilamentCamera::GetProjection() const {

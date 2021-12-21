@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2020 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ private:
         geometry::AxisAlignedBoundingBox bounds;
         {
             std::lock_guard<std::mutex> lock(cloud_lock_);
-            auto mat = rendering::Material();
+            auto mat = rendering::MaterialRecord();
             mat.shader = "defaultUnlit";
             new_vis->AddGeometry(
                     CLOUD_NAME + " #" + std::to_string(n_snapshots_), cloud_,
@@ -118,7 +118,7 @@ private:
             extent = bounds.GetExtent();
         }
 
-        auto mat = rendering::Material();
+        auto mat = rendering::MaterialRecord();
         mat.shader = "defaultUnlit";
 
         gui::Application::GetInstance().PostToMainThread(

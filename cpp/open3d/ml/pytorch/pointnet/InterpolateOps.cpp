@@ -1,3 +1,28 @@
+// ----------------------------------------------------------------------------
+// -                        Open3D: www.open3d.org                            -
+// ----------------------------------------------------------------------------
+// The MIT License (MIT)
+//
+// Copyright (c) 2018-2021 www.open3d.org
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+// ----------------------------------------------------------------------------
 //***************************************************************************************/
 //
 //    Based on Pointnet2 Library (MIT License):
@@ -52,10 +77,10 @@ std::tuple<torch::Tensor, torch::Tensor> three_nn(torch::Tensor query_pts,
             torch::zeros({batch_size, pts_num_out, 3},
                          torch::dtype(ToTorchDtype<float>()).device(device));
 
-    const float *pts_out = query_pts.data<float>();
-    const float *pts_in = data_pts.data<float>();
-    float *dist2 = out_dist2.data<float>();
-    int *idx = out_idx.data<int>();
+    const float *pts_out = query_pts.data_ptr<float>();
+    const float *pts_in = data_pts.data_ptr<float>();
+    float *dist2 = out_dist2.data_ptr<float>();
+    int *idx = out_idx.data_ptr<int>();
 
     three_nn_launcher(batch_size, pts_num_out, pts_num_in, pts_out, pts_in,
                       dist2, idx);
@@ -76,10 +101,10 @@ torch::Tensor three_interpolate(torch::Tensor points,
             torch::zeros({batch_size, C, N},
                          torch::dtype(ToTorchDtype<float>()).device(device));
 
-    const float *points_data = points.data<float>();
-    const float *weights_data = weights.data<float>();
-    const int *idx_data = idx.data<int>();
-    float *out_data = out.data<float>();
+    const float *points_data = points.data_ptr<float>();
+    const float *weights_data = weights.data_ptr<float>();
+    const int *idx_data = idx.data_ptr<int>();
+    float *out_data = out.data_ptr<float>();
 
     three_interpolate_launcher(batch_size, C, M, N, points_data, idx_data,
                                weights_data, out_data);
@@ -100,11 +125,11 @@ torch::Tensor three_interpolate_grad(torch::Tensor grad_out,
             torch::zeros({batch_size, C, M},
                          torch::dtype(ToTorchDtype<float>()).device(device));
 
-    const float *grad_out_data = grad_out.data<float>();
-    const float *weights_data = weights.data<float>();
-    const int *idx_data = idx.data<int>();
+    const float *grad_out_data = grad_out.data_ptr<float>();
+    const float *weights_data = weights.data_ptr<float>();
+    const int *idx_data = idx.data_ptr<int>();
 
-    float *out_data = out.data<float>();
+    float *out_data = out.data_ptr<float>();
 
     three_interpolate_grad_launcher(batch_size, C, N, M, grad_out_data,
                                     idx_data, weights_data, out_data);

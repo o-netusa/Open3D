@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2019 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -136,7 +136,8 @@ public:
     void RenderToDepthImage(
             View* view,
             Scene* scene,
-            std::function<void(std::shared_ptr<geometry::Image>)> cb);
+            std::function<void(std::shared_ptr<geometry::Image>)> cb,
+            bool z_in_view_space = false);
 };
 
 }  // namespace rendering

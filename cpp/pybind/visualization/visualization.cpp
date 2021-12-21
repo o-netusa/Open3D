@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 #include "pybind/visualization/visualization.h"
 
 #include "pybind/visualization/gui/gui.h"
+#include "pybind/visualization/rendering/material.h"
 #include "pybind/visualization/rendering/rendering.h"
 
 #ifdef BUILD_WEBRTC
@@ -46,6 +47,7 @@ void pybind_visualization(py::module &m) {
     pybind_viewcontrol_method(m_visualization);
     pybind_visualizer_method(m_visualization);
     pybind_visualization_utility_methods(m_visualization);
+    rendering::pybind_material(m_visualization);  // For RPC serialization
 
 #ifdef BUILD_GUI
     rendering::pybind_rendering(m_visualization);

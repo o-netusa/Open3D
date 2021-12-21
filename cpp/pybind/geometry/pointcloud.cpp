@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -63,6 +63,8 @@ void pybind_pointcloud(py::module &m) {
                  "Returns ``True`` if the point cloud contains point normals.")
             .def("has_colors", &PointCloud::HasColors,
                  "Returns ``True`` if the point cloud contains point colors.")
+            .def("has_covariances", &PointCloud::HasCovariances,
+                 "Returns ``True`` if the point cloud contains covariances.")
             .def("normalize_normals", &PointCloud::NormalizeNormals,
                  "Normalize point normals to length 1.")
             .def("paint_uniform_color", &PointCloud::PaintUniformColor,
@@ -115,12 +117,12 @@ void pybind_pointcloud(py::module &m) {
             .def("remove_radius_outlier", &PointCloud::RemoveRadiusOutliers,
                  "Function to remove points that have less than nb_points"
                  " in a given sphere of a given radius",
-                 "nb_points"_a, "radius"_a)
+                 "nb_points"_a, "radius"_a, "print_progress"_a = false)
             .def("remove_statistical_outlier",
                  &PointCloud::RemoveStatisticalOutliers,
                  "Function to remove points that are further away from their "
                  "neighbors in average",
-                 "nb_neighbors"_a, "std_ratio"_a)
+                 "nb_neighbors"_a, "std_ratio"_a, "print_progress"_a = false)
             .def("estimate_normals", &PointCloud::EstimateNormals,
                  "Function to compute the normals of a point cloud. Normals "
                  "are oriented with respect to the input point cloud if "
@@ -145,6 +147,17 @@ void pybind_pointcloud(py::module &m) {
                  "For each point in the source point cloud, compute the "
                  "distance to the target point cloud.",
                  "target"_a)
+            .def_static(
+                    "estimate_point_covariances",
+                    &PointCloud::EstimatePerPointCovariances,
+                    "Static function to compute the covariance matrix for "
+                    "each "
+                    "point in the given point cloud, doesn't change the input",
+                    "input"_a, "search_param"_a = KDTreeSearchParamKNN())
+            .def("estimate_covariances", &PointCloud::EstimateCovariances,
+                 "Function to compute the covariance matrix for each point "
+                 "in the point cloud",
+                 "search_param"_a = KDTreeSearchParamKNN())
             .def("compute_mean_and_covariance",
                  &PointCloud::ComputeMeanAndCovariance,
                  "Function to compute the mean and covariance matrix of a "
@@ -177,7 +190,8 @@ void pybind_pointcloud(py::module &m) {
             .def("segment_plane", &PointCloud::SegmentPlane,
                  "Segments a plane in the point cloud using the RANSAC "
                  "algorithm.",
-                 "distance_threshold"_a, "ransac_n"_a, "num_iterations"_a)
+                 "distance_threshold"_a, "ransac_n"_a, "num_iterations"_a,
+                 "seed"_a = py::none())
             .def_static(
                     "create_from_depth_image",
                     &PointCloud::CreateFromDepthImage,
@@ -214,7 +228,11 @@ camera. Given depth value d at (u, v) image coordinate, the corresponding 3d poi
                     "colors", &PointCloud::colors_,
                     "``float64`` array of shape ``(num_points, 3)``, "
                     "range ``[0, 1]`` , use ``numpy.asarray()`` to access "
-                    "data: RGB colors of points.");
+                    "data: RGB colors of points.")
+            .def_readwrite("covariances", &PointCloud::covariances_,
+                           "``float64`` array of shape ``(num_points, 3, 3)``, "
+                           "use ``numpy.asarray()`` to access data: Points "
+                           "covariances.");
     docstring::ClassMethodDocInject(m, "PointCloud", "has_colors");
     docstring::ClassMethodDocInject(m, "PointCloud", "has_normals");
     docstring::ClassMethodDocInject(m, "PointCloud", "has_points");
@@ -256,17 +274,19 @@ camera. Given depth value d at (u, v) image coordinate, the corresponding 3d poi
     docstring::ClassMethodDocInject(
             m, "PointCloud", "remove_radius_outlier",
             {{"nb_points", "Number of points within the radius."},
-             {"radius", "Radius of the sphere."}});
+             {"radius", "Radius of the sphere."},
+             {"print_progress", "Set to True to print progress bar."}});
     docstring::ClassMethodDocInject(
             m, "PointCloud", "remove_statistical_outlier",
             {{"nb_neighbors", "Number of neighbors around the target point."},
-             {"std_ratio", "Standard deviation ratio."}});
+             {"std_ratio", "Standard deviation ratio."},
+             {"print_progress", "Set to True to print progress bar."}});
     docstring::ClassMethodDocInject(
             m, "PointCloud", "estimate_normals",
             {{"search_param",
               "The KDTree search parameters for neighborhood search."},
              {"fast_normal_computation",
-              "If true, the normal estiamtion uses a non-iterative method to "
+              "If true, the normal estimation uses a non-iterative method to "
               "extract the eigenvector from the covariance matrix. This is "
               "faster, but is not as numerical stable."}});
     docstring::ClassMethodDocInject(
@@ -285,6 +305,15 @@ camera. Given depth value d at (u, v) image coordinate, the corresponding 3d poi
     docstring::ClassMethodDocInject(m, "PointCloud",
                                     "compute_point_cloud_distance",
                                     {{"target", "The target point cloud."}});
+    docstring::ClassMethodDocInject(
+            m, "PointCloud", "estimate_point_covariances",
+            {{"input", "The input point cloud."},
+             {"search_param",
+              "The KDTree search parameters for neighborhood search."}});
+    docstring::ClassMethodDocInject(
+            m, "PointCloud", "estimate_covariances",
+            {{"search_param",
+              "The KDTree search parameters for neighborhood search."}});
     docstring::ClassMethodDocInject(m, "PointCloud",
                                     "compute_mean_and_covariance");
     docstring::ClassMethodDocInject(m, "PointCloud",
@@ -314,7 +343,10 @@ camera. Given depth value d at (u, v) image coordinate, the corresponding 3d poi
              {"ransac_n",
               "Number of initial points to be considered inliers in each "
               "iteration."},
-             {"num_iterations", "Number of iterations."}});
+             {"num_iterations", "Number of iterations."},
+             {"seed",
+              "Seed value used in the random generator, set to None to use a "
+              "random seed value with each function call."}});
     docstring::ClassMethodDocInject(
             m, "PointCloud", "create_from_depth_image",
             {{"depth",

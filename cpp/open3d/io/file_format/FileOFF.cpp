@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,8 @@
 
 #include "open3d/io/FileFormatIO.h"
 #include "open3d/io/TriangleMeshIO.h"
-#include "open3d/utility/Console.h"
+#include "open3d/utility/Logging.h"
+#include "open3d/utility/ProgressBar.h"
 #include "open3d/utility/ProgressReporters.h"
 
 namespace open3d {
@@ -206,8 +207,8 @@ bool WriteTriangleMeshToOFF(const std::string &filename,
     file << "OFF" << std::endl;
     file << num_of_vertices << " " << num_of_triangles << " 0" << std::endl;
 
-    utility::ConsoleProgressBar progress_bar(num_of_vertices + num_of_triangles,
-                                             "Writing OFF: ", print_progress);
+    utility::ProgressBar progress_bar(num_of_vertices + num_of_triangles,
+                                      "Writing OFF: ", print_progress);
     for (size_t vidx = 0; vidx < num_of_vertices; ++vidx) {
         const Eigen::Vector3d &vertex = mesh.vertices_[vidx];
         file << vertex(0) << " " << vertex(1) << " " << vertex(2);

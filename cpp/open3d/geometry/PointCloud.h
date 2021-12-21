@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@
 
 #include "open3d/geometry/Geometry3D.h"
 #include "open3d/geometry/KDTreeSearchParam.h"
+#include "open3d/utility/Optional.h"
 
 namespace open3d {
 
@@ -92,6 +93,11 @@ public:
     /// Returns `true` if the point cloud contains point colors.
     bool HasColors() const {
         return points_.size() > 0 && colors_.size() == points_.size();
+    }
+
+    /// Returns 'true' if the point cloud contains per-point covariance matrix.
+    bool HasCovariances() const {
+        return !points_.empty() && covariances_.size() == points_.size();
     }
 
     /// Normalize point normals to length 1.
@@ -195,8 +201,11 @@ public:
     ///
     /// \param nb_points Number of points within the radius.
     /// \param search_radius Radius of the sphere.
+    /// \param print_progress Whether to print the progress bar.
     std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
-    RemoveRadiusOutliers(size_t nb_points, double search_radius) const;
+    RemoveRadiusOutliers(size_t nb_points,
+                         double search_radius,
+                         bool print_progress = false) const;
 
     /// \brief Function to remove points that are further away from their
     /// \p nb_neighbor neighbors in average.
@@ -204,7 +213,9 @@ public:
     /// \param nb_neighbors Number of neighbors around the target point.
     /// \param std_ratio Standard deviation ratio.
     std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
-    RemoveStatisticalOutliers(size_t nb_neighbors, double std_ratio) const;
+    RemoveStatisticalOutliers(size_t nb_neighbors,
+                              double std_ratio,
+                              bool print_progress = false) const;
 
     /// \brief Function to compute the normals of a point cloud.
     ///
@@ -212,7 +223,8 @@ public:
     /// exist.
     ///
     /// \param search_param The KDTree search parameters for neighborhood
-    /// search. \param fast_normal_computation If true, the normal estiamtion
+    /// search.
+    /// \param fast_normal_computation If true, the normal estimation
     /// uses a non-iterative method to extract the eigenvector from the
     /// covariance matrix. This is faster, but is not as numerical stable.
     void EstimateNormals(
@@ -250,6 +262,26 @@ public:
     ///
     /// \param target The target point cloud.
     std::vector<double> ComputePointCloudDistance(const PointCloud &target);
+
+    /// \brief Static function to compute the covariance matrix for each point
+    /// of a point cloud. Doesn't change the input PointCloud, just outputs the
+    /// covariance matrices.
+    ///
+    ///
+    /// \param input PointCloud to use for covariance computation \param
+    /// search_param The KDTree search parameters for neighborhood search.
+    static std::vector<Eigen::Matrix3d> EstimatePerPointCovariances(
+            const PointCloud &input,
+            const KDTreeSearchParam &search_param = KDTreeSearchParamKNN());
+
+    /// \brief Function to compute the covariance matrix for each point of a
+    /// point cloud.
+    ///
+    ///
+    /// \param search_param The KDTree search parameters for neighborhood
+    /// search.
+    void EstimateCovariances(
+            const KDTreeSearchParam &search_param = KDTreeSearchParamKNN());
 
     /// Function to compute the mean and covariance matrix
     /// of a point cloud.
@@ -305,12 +337,16 @@ public:
     /// \param ransac_n Number of initial points to be considered inliers in
     /// each iteration.
     /// \param num_iterations Number of iterations.
+    /// \param seed Sets the seed value used in the random
+    /// generator, set to nullopt to use a random seed value with each function
+    /// call.
     /// \return Returns the plane model ax + by + cz + d = 0 and the indices of
     /// the plane inliers.
     std::tuple<Eigen::Vector4d, std::vector<size_t>> SegmentPlane(
             const double distance_threshold = 0.01,
             const int ransac_n = 3,
-            const int num_iterations = 100) const;
+            const int num_iterations = 100,
+            utility::optional<int> seed = utility::nullopt) const;
 
     /// \brief Factory function to create a pointcloud from a depth image and a
     /// camera model.
@@ -378,6 +414,8 @@ public:
     std::vector<Eigen::Vector3d> normals_;
     /// RGB colors of points.
     std::vector<Eigen::Vector3d> colors_;
+    /// Covariance Matrix for each point
+    std::vector<Eigen::Matrix3d> covariances_;
 };
 
 }  // namespace geometry

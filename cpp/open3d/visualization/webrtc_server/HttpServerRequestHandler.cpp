@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@
 
 #include <functional>
 
-#include "open3d/utility/Console.h"
+#include "open3d/utility/Logging.h"
 
 namespace open3d {
 namespace visualization {
@@ -84,9 +84,9 @@ public:
 
         utility::LogDebug(
                 "request_uri: {}, local_uri: {}, request_method: {}, "
-                "query_string: {}, content_length, answer: {}.",
+                "query_string: {}, content_length: {}, answer: {}.",
                 req_info->request_uri, req_info->local_uri,
-                req_info->request_method, req_info->request_method,
+                req_info->request_method,
                 req_info->query_string ? req_info->query_string : "nullptr",
                 req_info->content_length, answer);
         return ret;

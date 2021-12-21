@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2019 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -188,6 +188,9 @@ private:
     //          publicly
     std::unordered_map<REHandle_abstract, std::unordered_set<REHandle_abstract>>
             dependencies_;
+
+    // Cache for GPU
+    std::unordered_map<uint64_t, TextureHandle> texture_cache_;
 
     filament::Texture* LoadTextureFromImage(
             const std::shared_ptr<geometry::Image>& image, bool srgb);

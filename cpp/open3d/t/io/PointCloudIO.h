@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2018 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -61,6 +61,14 @@ bool WritePointCloud(const std::string &filename,
                      const geometry::PointCloud &pointcloud,
                      const WritePointCloudOption &params = {});
 
+bool ReadPointCloudFromNPZ(const std::string &filename,
+                           geometry::PointCloud &pointcloud,
+                           const ReadPointCloudOption &params);
+
+bool WritePointCloudToNPZ(const std::string &filename,
+                          const geometry::PointCloud &pointcloud,
+                          const WritePointCloudOption &params);
+
 bool ReadPointCloudFromXYZI(const std::string &filename,
                             geometry::PointCloud &pointcloud,
                             const ReadPointCloudOption &params);
@@ -68,6 +76,14 @@ bool ReadPointCloudFromXYZI(const std::string &filename,
 bool WritePointCloudToXYZI(const std::string &filename,
                            const geometry::PointCloud &pointcloud,
                            const WritePointCloudOption &params);
+
+bool ReadPointCloudFromPCD(const std::string &filename,
+                           geometry::PointCloud &pointcloud,
+                           const ReadPointCloudOption &params);
+
+bool WritePointCloudToPCD(const std::string &filename,
+                          const geometry::PointCloud &pointcloud,
+                          const WritePointCloudOption &params);
 
 bool ReadPointCloudFromPLY(const std::string &filename,
                            geometry::PointCloud &pointcloud,

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 www.open3d.org
+// Copyright (c) 2018-2021 www.open3d.org
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -127,7 +127,7 @@ Widget::DrawResult TextEdit::Draw(const DrawContext &context) {
     if (ImGui::InputTextWithHint(impl_->id_.c_str(),
                                  impl_->placeholder_.c_str(),
                                  const_cast<char *>(impl_->text_.c_str()),
-                                 impl_->text_.capacity(), text_flags,
+                                 impl_->text_.capacity() + 1, text_flags,
                                  InputTextCallback, &impl_->text_)) {
         if (impl_->on_text_changed_) {
             impl_->on_text_changed_(impl_->text_.c_str());
