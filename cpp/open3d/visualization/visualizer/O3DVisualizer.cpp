@@ -1136,8 +1136,8 @@ struct O3DVisualizer::Impl {
         }
     }
 
-    void Add3DLabel(const Eigen::Vector3f &pos, const char *text) {
-        scene_->AddLabel(pos, text);
+    void Add3DLabel(const Eigen::Vector3f &pos, const char *text, const gui::Color& color) {
+        scene_->AddLabel(pos, text, color);
     }
 
     void Clear3DLabels() { scene_->ClearLabels(); }

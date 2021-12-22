@@ -161,7 +161,7 @@ public:
                                 const rendering::MaterialRecord* material);
 
     /// Adds a label with text `text` at the 3D position `pos`.
-    void Add3DLabel(const Eigen::Vector3f& pos, const char* text);
+    void Add3DLabel(const Eigen::Vector3f& pos, const char* text, const gui::Color& color = {});
 
     /// Clears all 3D labels created with `Add3DLabel`
     void Clear3DLabels();

@@ -813,9 +813,9 @@ void GuiVisualizer::Init() {
                             GetTheme());
                     dlg->AddFilter(".ktx", "Khronos Texture (.ktx)");
                     dlg->SetOnCancel([this]() { CloseDialog(); });
-                    dlg->SetOnDone([this](const char *path) {
+                    dlg->SetOnDone([this](const std::vector<std::string>& paths) {
                         CloseDialog();
-                        impl_->SetIBL(GetRenderer(), path);
+                        impl_->SetIBL(GetRenderer(), paths[0].c_str());
                     });
                     ShowDialog(dlg);
                 } else {
