@@ -64,8 +64,10 @@ void _CConvBackropFilterCPU(TOut* filter_backprop,
                             const TFeat* out_features_gradient,
                             bool normalize) {
     const bool NEIGHBORS_IMPORTANCE = neighbors_importance;
-    const int VECSIZE = 32;
+    constexpr const int VECSIZE = 32;
     typedef Eigen::Array<TReal, VECSIZE, 1> Vec_t;
+    typedef Eigen::Array<TReal, VECSIZE, 3> Vec3_t;
+    typedef Eigen::Array<TFeat, VECSIZE, Eigen::Dynamic> Matrix;
     typedef InterpolationVec<TReal, VECSIZE, INTERPOLATION> InterpolationVec_t;
     InterpolationVec_t interpolation;
 
@@ -92,14 +94,11 @@ void _CConvBackropFilterCPU(TOut* filter_backprop,
                 B.setZero();
                 Eigen::Matrix<TFeat, Eigen::Dynamic, Eigen::Dynamic> C(
                         out_channels, range_length);
-
-                typedef Eigen::Array<TFeat, VECSIZE, Eigen::Dynamic> Matrix;
                 Matrix infeat(VECSIZE, in_channels);
-
                 Eigen::Array<TReal, 3, 1> offsets_(offsets[0], offsets[1],
                                                    offsets[2]);
 
-                Eigen::Array<TReal, VECSIZE, 3> inv_extents;
+                Vec3_t inv_extents;
                 if (INDIVIDUAL_EXTENT == false) {
                     if (ISOTROPIC_EXTENT) {
                         inv_extents = 1 / extents[0];
@@ -170,9 +169,9 @@ void _CConvBackropFilterCPU(TOut* filter_backprop,
 
                         ++vec_valid_count;
                         if (vec_valid_count == VECSIZE) {
-                            ComputeFilterCoordinates<ALIGN_CORNERS, MAPPING>(
+                            ComputeFilterCoordinates(
                                     x, y, z, filter_size_xyz, inv_extents,
-                                    offsets_);
+                                    offsets_, ALIGN_CORNERS, MAPPING);
                             interpolation.Interpolate(
                                     interp_weights, interp_indices, x, y, z,
                                     filter_size_xyz, in_channels);
@@ -188,9 +187,9 @@ void _CConvBackropFilterCPU(TOut* filter_backprop,
                         }
                     }
                     if (vec_valid_count) {
-                        ComputeFilterCoordinates<ALIGN_CORNERS, MAPPING>(
+                        ComputeFilterCoordinates(
                                 x, y, z, filter_size_xyz, inv_extents,
-                                offsets_);
+                                offsets_, ALIGN_CORNERS, MAPPING);
                         interpolation.Interpolate(interp_weights,
                                                   interp_indices, x, y, z,
                                                   filter_size_xyz, in_channels);

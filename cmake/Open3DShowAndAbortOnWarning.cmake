@@ -19,6 +19,11 @@ function(open3d_show_and_abort_on_warning target)
         /wd4245        # signed/unsigned mismatch (visualization, PoissonRecon, ...)
         /wd4267        # conversion from size_t to smaller type (FixedRadiusSearchCUDA, tests)
         /wd4305        # conversion to smaller type in initialization or constructor argument (examples, tests)
+        /wd4067
+        /wd4624
+        /wd4389
+        /wd4018
+        /wd4996
     )
     set(DISABLE_GNU_CLANG_INTEL_WARNINGS
         -Wno-unused-parameter               # (many places in Open3D code)

@@ -806,9 +806,9 @@ struct SceneWidget::Impl {
             aspect = float(frame.width) / float(frame.height);
         }
         auto* camera = scene_->GetCamera();
-        auto far = rendering::Camera::CalcFarPlane(*camera, bounds_);
+        auto far_z = rendering::Camera::CalcFarPlane(*camera, bounds_);
         camera->SetProjection(verticalFoV, aspect,
-                              rendering::Camera::CalcNearPlane(), far,
+                              rendering::Camera::CalcNearPlane(), far_z,
                               rendering::Camera::FovType::Vertical);
     }
 };
